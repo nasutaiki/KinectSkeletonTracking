@@ -23,24 +23,28 @@ namespace KinectSkeletonTracking
     {
         KinectSensor kinect;
         
+        BodyFrameReader bodyFrameReader;  //
+        Body[] bodies;    // Bodyを保持する配列；Kinectは最大6人トラッキングできる
+        
         public MainWindow()
         {
             InitializeComponent();
         }
-        
-
-       
         private void Window_Loaded(object sensor, RoutedEventArgs e)
         {
             try
             {
                 kinect = KinectSensor.GetDefault();
-                if (kinect == null)
-                {
-                    throw new Exception("Kinectを開けません");
-                }
-
+                // TODO: Kinectが使用可能状態か調べてから次の処理に移りたい。
                 kinect.Open();
+                
+                // Bodyを入れる配列を作る
+                bodies = new Body[kinect.BodyFrameSource.BodyCount];
+                
+                // ボディーリーダーを開く
+                bodyFrameReader = kinect.BodyFrameSource.OpenReader();
+                bodyFrameReader.FrameArrived += bodyFrameReader_FrameArrived;
+                
             }
             catch (Exception ex)
             {
@@ -51,10 +55,34 @@ namespace KinectSkeletonTracking
 
         private void Window_Closing(object sensor, System.ComponentModel.CancelEventArgs e)
         {
+            if ( bodyFrameReader != null ) {
+                bodyFrameReader.Dispose();
+                bodyFrameReader = null;
+            }
             if (kinect != null)
             {
                 kinect.Close();
                 kinect = null;
+            }
+        }
+        
+        void bodyFrameReader_FrameArrived( object sender, BodyFrameArrivedEventArgs e )
+        {
+            UpdateBodyFrame( e );
+            // TODO:GUIに対する描写は後に実装する
+            // DrawBodyFrame(); 
+        }
+
+        // ボディの更新
+        private void UpdateBodyFrame( BodyFrameArrivedEventArgs e )
+        {
+            using ( var bodyFrame = e.FrameReference.AcquireFrame() ) {
+                if ( bodyFrame == null ) {
+                    return;
+                }
+
+                // ボディデータを取得する
+                bodyFrame.GetAndRefreshBodyData( bodies );
             }
         }
     }
