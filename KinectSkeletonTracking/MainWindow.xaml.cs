@@ -65,6 +65,7 @@ namespace KinectSkeletonTracking
             UpdateBodyFrame(e);
             // TODO:GUIに対する描写は後に実装する
             // DrawBodyFrame(); 
+            SendRotate();
         }
 
         // ボディの更新
@@ -82,7 +83,7 @@ namespace KinectSkeletonTracking
             }
         }
 
-        private void DrawBodyFrame()
+        private void SendRotate()
         {
             // 追跡しているBodyのみループする
             foreach (var body in bodies.Where(b => b.IsTracked))
