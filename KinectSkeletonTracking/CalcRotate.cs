@@ -1,6 +1,11 @@
 ﻿using System;
 using Microsoft.Kinect;
 
+/*
+ https://lightbuzz.com/kinect-joint-rotations/ から持ってきたソース。
+ 計算に関しては未把握。
+*/
+
 namespace KinectSkeletonTracking
 {
     public class CalcRotate

@@ -1,17 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.Kinect;
 
 namespace KinectSkeletonTracking
@@ -22,14 +11,16 @@ namespace KinectSkeletonTracking
     public partial class MainWindow : Window
     {
         KinectSensor kinect;
-        
-        BodyFrameReader bodyFrameReader;  //
-        Body[] bodies;    // Bodyを保持する配列；Kinectは最大6人トラッキングできる
-        
+
+        BodyFrameReader bodyFrameReader; //
+        Body[] bodies; // Bodyを保持する配列；Kinectは最大6人トラッキングできる
+
         public MainWindow()
         {
             InitializeComponent();
         }
+
+        // Windowが表示されたときコールされる（リスナー？）
         private void Window_Loaded(object sensor, RoutedEventArgs e)
         {
             try
@@ -37,14 +28,13 @@ namespace KinectSkeletonTracking
                 kinect = KinectSensor.GetDefault();
                 // TODO: Kinectが使用可能状態か調べてから次の処理に移りたい。
                 kinect.Open();
-                
+
                 // Bodyを入れる配列を作る
                 bodies = new Body[kinect.BodyFrameSource.BodyCount];
-                
-                // ボディーリーダーを開く
+
+                // ボディーリーダーを開く（ってなに？ TODO:要把握 ）
                 bodyFrameReader = kinect.BodyFrameSource.OpenReader();
                 bodyFrameReader.FrameArrived += bodyFrameReader_FrameArrived;
-                
             }
             catch (Exception ex)
             {
@@ -53,36 +43,67 @@ namespace KinectSkeletonTracking
             }
         }
 
+
+        // Windowが閉じたときにコールされる（リスナー？）
         private void Window_Closing(object sensor, System.ComponentModel.CancelEventArgs e)
         {
-            if ( bodyFrameReader != null ) {
+            if (bodyFrameReader != null)
+            {
                 bodyFrameReader.Dispose();
                 bodyFrameReader = null;
             }
+
             if (kinect != null)
             {
                 kinect.Close();
                 kinect = null;
             }
         }
-        
-        void bodyFrameReader_FrameArrived( object sender, BodyFrameArrivedEventArgs e )
+
+        void bodyFrameReader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
-            UpdateBodyFrame( e );
+            UpdateBodyFrame(e);
             // TODO:GUIに対する描写は後に実装する
             // DrawBodyFrame(); 
         }
 
         // ボディの更新
-        private void UpdateBodyFrame( BodyFrameArrivedEventArgs e )
+        private void UpdateBodyFrame(BodyFrameArrivedEventArgs e)
         {
-            using ( var bodyFrame = e.FrameReference.AcquireFrame() ) {
-                if ( bodyFrame == null ) {
+            using (var bodyFrame = e.FrameReference.AcquireFrame())
+            {
+                if (bodyFrame == null)
+                {
                     return;
                 }
 
                 // ボディデータを取得する
-                bodyFrame.GetAndRefreshBodyData( bodies );
+                bodyFrame.GetAndRefreshBodyData(bodies);
+            }
+        }
+
+        private void DrawBodyFrame()
+        {
+            // 追跡しているBodyのみループする
+            foreach (var body in bodies.Where(b => b.IsTracked))
+            {
+                // Bodyから取得した全関節でループする。
+                foreach (var joint in body.Joints)
+                {
+                    // 追跡可能な状態か？
+                    if (joint.Value.TrackingState == TrackingState.Tracked)
+                    {
+                        //関節の向きを取得する（Vector4型）。関節の指定にはJoyntType(enum)を使用する。
+                        var orientation = body.JointOrientations[joint.Key].Orientation;
+
+                        //関節のそれぞれの軸に対応する角度を取得する
+                        var pitchRotate = CalcRotate.Pitch(orientation);
+                        var yowRotate = CalcRotate.Yaw(orientation);
+                        var rollRotate = CalcRotate.Roll(orientation);
+                        
+                        // TODO:↑の角度の値から必要なものをソケット通信で送信する
+                    }
+                }
             }
         }
     }
