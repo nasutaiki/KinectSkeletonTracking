@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Kinect;
 
 namespace KinectSkeletonTracking
 {
@@ -20,9 +21,41 @@ namespace KinectSkeletonTracking
     /// </summary>
     public partial class MainWindow : Window
     {
+        KinectSensor kinect;
+        
         public MainWindow()
         {
             InitializeComponent();
+        }
+        
+
+       
+        private void Window_Loaded(object sensor, RoutedEventArgs e)
+        {
+            try
+            {
+                kinect = KinectSensor.GetDefault();
+                if (kinect == null)
+                {
+                    throw new Exception("Kinectを開けません");
+                }
+
+                kinect.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Close();
+            }
+        }
+
+        private void Window_Closing(object sensor, System.ComponentModel.CancelEventArgs e)
+        {
+            if (kinect != null)
+            {
+                kinect.Close();
+                kinect = null;
+            }
         }
     }
 }
