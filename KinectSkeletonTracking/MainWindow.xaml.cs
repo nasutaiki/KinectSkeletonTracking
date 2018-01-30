@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using Microsoft.Kinect;
+using System.Diagnostics;
 
 namespace KinectSkeletonTracking
 {
@@ -99,15 +100,20 @@ namespace KinectSkeletonTracking
                     // 追跡可能な状態か？
                     if (joint.Value.TrackingState == TrackingState.Tracked)
                     {
-                        //関節の向きを取得する（Vector4型）。関節の指定にはJoyntType(enum)を使用する。
-                        var orientation = body.JointOrientations[joint.Key].Orientation;
+                        // デバックのため右肘のピッチ軸を出力してみる
+                        if (joint.Key == JointType.ElbowRight)
+                        {
+                            //関節の向きを取得する（Vector4型）。関節の指定にはJoyntType(enum)を使用する。
+                            var orientation = body.JointOrientations[joint.Key].Orientation;
 
-                        //関節のそれぞれの軸に対応する角度を取得する
-                        var pitchRotate = CalcRotate.Pitch(orientation);
-                        var yowRotate = CalcRotate.Yaw(orientation);
-                        var rollRotate = CalcRotate.Roll(orientation);
+                            //関節のそれぞれの軸に対応する角度を取得する
+                            //var pitchRotate = CalcRotate.Pitch(orientation);
+                            //var yowRotate = CalcRotate.Yaw(orientation);
+                            var rollRotate = CalcRotate.Roll(orientation);
                         
-                        // TODO:↑の角度の値から必要なものをソケット通信で送信する
+                            // TODO:↑の角度の値から必要なものをソケット通信で送信する
+                            Debug.WriteLine(rollRotate.ToString());
+                        }
                     }
                 }
             }
