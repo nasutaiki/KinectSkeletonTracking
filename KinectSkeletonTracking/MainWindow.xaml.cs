@@ -20,7 +20,7 @@ namespace KinectSkeletonTracking
             InitializeComponent();
         }
 
-        // Windowが表示されたときコールされる（リスナー？）
+        // Windowが表示されたときコールされる
         private void Window_Loaded(object sensor, RoutedEventArgs e)
         {
             try
@@ -32,8 +32,9 @@ namespace KinectSkeletonTracking
                 // Bodyを入れる配列を作る
                 bodies = new Body[kinect.BodyFrameSource.BodyCount];
 
-                // ボディーリーダーを開く（ってなに？ TODO:要把握 ）
+                // body用のフレームリーダーを取得する。30fps?
                 bodyFrameReader = kinect.BodyFrameSource.OpenReader();
+                //ここでイベントハンドラを追加する。Kinectが撮影したBodyのフレームデータが到着したときに通知される。
                 bodyFrameReader.FrameArrived += bodyFrameReader_FrameArrived;
             }
             catch (Exception ex)
@@ -44,7 +45,7 @@ namespace KinectSkeletonTracking
         }
 
 
-        // Windowが閉じたときにコールされる（リスナー？）
+        // Windowが閉じたときにコールされる
         private void Window_Closing(object sensor, System.ComponentModel.CancelEventArgs e)
         {
             if (bodyFrameReader != null)
@@ -59,26 +60,30 @@ namespace KinectSkeletonTracking
                 kinect = null;
             }
         }
-
+        
+        // イベント発生はこのメソッドに通知される？
         void bodyFrameReader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
-            UpdateBodyFrame(e);
-            // TODO:GUIに対する描写は後に実装する
-            // DrawBodyFrame(); 
-            SendRotate();
+            UpdateBodyFrame(e); // ボディデータの更新をする
+            // DrawBodyFrame(); // TODO:GUIに対する描写は後に実装する
+            SendRotate();    // 角度を取得して送信する
         }
 
-        // ボディの更新
+        // ボディの更新をする。イベントハンドラ（フレームが取得できた、イベントが発生した ときにコールされる）
         private void UpdateBodyFrame(BodyFrameArrivedEventArgs e)
         {
+            
+            // usingブロック内で宣言された変数はGCに任せずに確実に開放される
+            // フレームはKinectから送られてくるデータの最小単位。e.FrameReference.AcquireFrame()で取得する。
             using (var bodyFrame = e.FrameReference.AcquireFrame())
             {
+                // nullが送られてくる可能性があるので、その場合は破棄。
                 if (bodyFrame == null)
                 {
                     return;
                 }
 
-                // ボディデータを取得する
+                // ボディデータをbodiesにコピーする
                 bodyFrame.GetAndRefreshBodyData(bodies);
             }
         }
