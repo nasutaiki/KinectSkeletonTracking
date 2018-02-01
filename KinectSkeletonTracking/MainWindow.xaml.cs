@@ -14,7 +14,7 @@ namespace KinectSkeletonTracking
         KinectSensor kinect;
 
         BodyFrameReader bodyFrameReader; //
-        Body[] bodies; // Bodyを保持する配列；Kinectは最大6人トラッキングできる
+        Body[] bodies; // Bodyを保持する配列；Kinectは最大6人トラッキングできる nsu
 
         public MainWindow()
         {
